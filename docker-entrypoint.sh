@@ -1,31 +1,39 @@
 #!/bin/sh
-set -e
+set -e  # Exit on any error
 
-# this script will start main.py
+# This script starts the `main.py` application
 
-PROGNAME=$(basename $0)
+PROGNAME=$(basename $0)  # Get the script name
+USER="astragateway"      # Default user
+GROUP="astragateway"     # Default group
+PYTHON="/opt/venv/bin/python"  # Path to Python executable in the virtual environment
+WORKDIR="src/astragateway"     # Application working directory
+STARTUP="$PYTHON main.py $@"   # Command to start the application
 
-USER="astragateway"
-GROUP="astragateway"
-PYTHON="/opt/venv/bin/python"
-WORKDIR="src/astragateway"
-STARTUP="$PYTHON main.py $@"
-
+# Log the startup command
 echo "$PROGNAME: Starting $STARTUP"
-if [[ "$(id -u)" = '0' ]]; then
-    # if running as root, chown and step-down from root
-    find . \! -type l \! -user ${USER} -exec chown ${USER}:${GROUP} '{}' +
-    find ../astracommon \! -type l \! -user ${USER} -exec chown ${USER}:${GROUP} '{}' +
+
+# Check if the script is running as root
+if [ "$(id -u)" = '0' ]; then
+    # If running as root, change ownership of files and step down to the specified user
+    find . ! -type l ! -user ${USER} -exec chown ${USER}:${GROUP} '{}' +
+    find ../astracommon ! -type l ! -user ${USER} -exec chown ${USER}:${GROUP} '{}' +
+
+    # Change to the working directory
     cd ${WORKDIR}
-    if [[ "${BLXR_COLLECT_CORE_DUMP}" == "1" || "${BLXR_COLLECT_CORE_DUMP}" == "true" ]]; then
-        echo enabling collecting core dumps...
-        ulimit -c unlimited
+
+    # Enable core dump collection if the environment variable is set
+    if [ "${BLXR_COLLECT_CORE_DUMP}" = "1" ] || [ "${BLXR_COLLECT_CORE_DUMP}" = "true" ]; then
+        echo "Enabling core dump collection..."
+        ulimit -c unlimited  # Remove core file size limit
         mkdir -p /var/crash
         echo /var/crash/core.%e.%p.%h.%t > /proc/sys/kernel/core_pattern
     fi
+
+    # Run the application as the specified user
     exec su-exec ${USER} ${STARTUP}
 else
-    # allow the container to be started with `--user`, in this case we cannot use su-exec
+    # If not running as root, allow the container to start with a non-root user
     cd ${WORKDIR}
     exec ${STARTUP}
 fi
