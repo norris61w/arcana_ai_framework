@@ -1,11 +1,11 @@
-pympler==0.8
+pympler==0.7
 requests==2.22.0
 
 # Ethereum dependencies
-ipaddress==1.0.22
-cffi==1.12.2
-csiphash==0.0.5
-aiohttp==3.7.3
+ipaddress==1.0.21
+cffi==1.12.1
+csiphash==0.0.4
+aiohttp==3.7.2
 web3>=5.11.1
 
 # TODO: plan future work to remove this package
