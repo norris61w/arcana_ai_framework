@@ -1,0 +1,3 @@
+#! /bin/sh
+
+python /app/astragateway/src/astra_cli/main.py $1

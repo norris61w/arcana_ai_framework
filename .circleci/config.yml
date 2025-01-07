@@ -1,0 +1,157 @@
+version: 2.1
+commands:
+  clone:
+    description: "checkout a git repository"
+    parameters:
+      repo:
+        type: string
+      folder:
+        type: string
+    steps:
+      - run:
+          name: clone repository
+          command: |
+            if [ -d "<< parameters.folder >>" ]; then
+              echo "folder already exist skipping << parameters.folder >>"
+            else
+              { # try
+                  echo "Trying to clone identical branch name '$CIRCLE_BRANCH' from << parameters.repo >>."
+                  git clone -b $CIRCLE_BRANCH --single-branch --depth=1 --recursive git@github.com:astra-Labs/<< parameters.repo >>.git << parameters.folder >>
+              } || { # catch
+                  echo "Trying astraextensions master branch, could not find identical branch name '$CIRCLE_BRANCH'."
+                  git clone -b master --single-branch --depth=1 --recursive git@github.com:astra-Labs/<< parameters.repo >>.git << parameters.folder >>
+              }
+              cd << parameters.folder >>
+              echo "Resolved branch $(git rev-parse --abbrev-ref HEAD) for << parameters.folder >>."
+              echo "$(git rev-parse HEAD)" > ~/ws/<< parameters.folder >>_tmp_file
+            fi
+executors:
+  astra-executor:
+    docker:
+    # TODO: Use AWS repository or create astra account on Docker Hub
+    - image: circleci/python:3.8
+    environment:
+      PYTHONPATH: /home/circleci/ws/astracommon/src:/home/circleci/ws/astragateway/src:/home/circleci/ws/astraextensions
+      GIT_SSH_COMMAND: "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
+    working_directory: ~/ws
+
+jobs:
+  initialize:
+    executor: astra-executor
+    steps:
+      - attach_workspace:
+          at: ~/ws
+      - checkout:
+          path:
+            "astragateway"
+      - run: # install and activate virtual environment with pip
+          command: |
+            cd ~/ws
+            python -m virtualenv venv
+      - clone:
+          repo: astraextensions
+          folder: astraextensions
+      - run:
+          name: install dependencies
+          command: |
+            sudo apt update &&
+            sudo apt install build-essential automake autogen autoconf libtool libtool-bin libssl-dev cmake linux-headers-amd64
+      - clone:
+          repo: astracommon
+          folder: astracommon
+      - restore_cache: # restores saved dependency cache
+          key: astraextensions-{{ checksum "~/ws/astraextensions_tmp_file" }}
+      - restore_cache: # restores saved dependency cache
+          key: "astragateway-\
+            {{ checksum \"astragateway/requirements.txt\" }}-\
+            {{ checksum \"astracommon/requirements.txt\"}}-\
+            {{ checksum \"astracommon/requirements-dev.txt\"}}"
+
+      - run: # install and activate virtual environment with pip
+          name: installing virtual env
+          command: |
+            . venv/bin/activate
+            pip install -r astragateway/requirements.txt \
+              -r astragateway/requirements-dev.txt \
+              -r astracommon/requirements.txt \
+              -r astracommon/requirements-dev.txt
+      - run:
+          command: |
+            . venv/bin/activate
+            cd astraextensions
+            python build_extensions.py
+      - save_cache: # special step to save dependency cache
+          key: astraextensions-{{ checksum "~/ws/astraextensions_tmp_file" }}
+          paths:
+            - astraextensions
+      - save_cache: # special step to save dependency cache
+          key: "astragateway-\
+            {{ checksum \"astragateway/requirements.txt\" }}-\
+            {{ checksum \"astracommon/requirements.txt\"}}-\
+            {{ checksum \"astracommon/requirements-dev.txt\"}}"
+          paths:
+            - venv
+      - persist_to_workspace:
+          root: .
+          paths:
+            - venv
+            - astracommon
+            - astragateway
+            - astraextensions
+  check:
+    executor: astra-executor
+    steps:
+      - attach_workspace:
+          at: ~/ws
+      - run:
+          name: Lint Score
+          command: |
+            . venv/bin/activate
+            cd astragateway
+            # The || exit 0 bypasses not failing the build for <10 score
+            pylint src/astragateway --msg-template="{path}:{line}: [{msg_id}({symbol}), {obj}] {msg}" --rcfile=../astracommon/pylintrc || exit 0
+      - run:
+          name: Static Analysis
+          command: |
+            . venv/bin/activate
+            cd astragateway
+            # remove dev configuration
+            rm .pyre_configuration
+            pyre --local-configuration .pyre_configuration.circle check
+  test:
+    executor: astra-executor
+    steps:
+    - attach_workspace:
+        at: ~/ws
+    - run:
+        name: Unit Tests
+        command: |
+          . venv/bin/activate
+          cd astragateway/test/unit
+          python -m unittest discover --verbose
+    - run:
+        name: Integration Tests
+        command: |
+          . venv/bin/activate
+          cd astragateway/test/integration
+          python -m unittest discover --verbose
+    - run:
+        name: Check Coverage
+        command: |
+          . venv/bin/activate
+          cd astragateway/test/unit
+          coverage run --source=/home/circleci/ws/astragateway/src -m unittest discover && coverage report --fail-under=01
+    - store_artifacts:
+        path: test-reports/
+        destination: tr1
+workflows:
+  version: 2
+  test-build:
+    jobs:
+      - initialize
+      - check:
+          requires:
+            - initialize
+      - test:
+          requires:
+            - initialize
