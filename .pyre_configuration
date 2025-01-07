@@ -1,13 +1,13 @@
 {
-  "binary": ".venv/bin/pyre.bin",
+  "binary": ".venv/bin/pyre.bin",  // Path to the Pyre binary within the virtual environment
   "search_path": [
-    "../bxcommon/src",
-    "../bxextensions/",
-    ".venv/lib/python3.8/site-packages"
+    "../bxcommon/src",  // Path to the common shared source directory
+    "../bxextensions/",  // Path to additional extensions
+    ".venv/lib/python3.8/site-packages"  // Path to site-packages in the virtual environment
   ],
   "source_directories": [
-    "src"
+    "src"  // Directory containing the source code for type checking
   ],
-  "taint_models_path": ".venv/lib/pyre_check/taint/",
-  "typeshed": ".venv/lib/pyre_check/typeshed/"
+  "taint_models_path": ".venv/lib/pyre_check/taint/",  // Path to taint analysis models for Pyre
+  "typeshed": ".venv/lib/pyre_check/typeshed/"  // Path to Pyre's typeshed type stubs
 }
