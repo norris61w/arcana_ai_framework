@@ -1,21 +1,29 @@
 #!/usr/bin/env bash
 
 ##
-# This is a version that relies on `watchman` and is much faster for repeated usage, since it queries
-# incremental changes in the filesystem.
-# Make sure you have run `brew install watchman` beforehand.
+# This script sets up a Python virtual environment and performs type checking using `pyre`.
+# It leverages `watchman` for faster incremental filesystem change detection.
+# Prerequisite: `brew install watchman`
 
+set -e  # Exit on any error
+
+# Create and activate virtual environment
 mkdir -p .venv
-virtualenv .venv -p python3
-. .venv/bin/activate
+python3 -m venv .venv
+source .venv/bin/activate
+
+# Install required dependencies
 pip install -r ../astracommon/requirements.txt
 pip install -r ../astracommon/requirements-dev.txt
 pip install -r requirements.txt
 pip install -r requirements-dev.txt
 
+# Add spacing for better output readability
 echo ""
 echo ""
 echo ""
-echo "**********TYPE CHECKING***********"
-watchman watch .
-pyre incremental
+
+# Perform type checking with pyre
+echo "********** TYPE CHECKING ***********"
+watchman watch .  # Initialize watchman to monitor file changes
+pyre incremental   # Perform incremental type checking
