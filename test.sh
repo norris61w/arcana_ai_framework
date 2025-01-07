@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
-set -e  # Остановка выполнения при ошибке
+set -e
 
-# Переменные
+
 VENV_DIR=".venv"
 COMMON_REQUIREMENTS="../astracommon/requirements.txt"
 COMMON_DEV_REQUIREMENTS="../astracommon/requirements-dev.txt"
@@ -14,12 +14,12 @@ ASTRACOMMON_SRC="../../../astracommon/src"
 PROJECT_SRC="../../src"
 ASTRAEXTENSIONS_SRC="../../../astraextensions"
 
-# Создание виртуального окружения
+
 mkdir -p "$VENV_DIR"
 python3 -m venv "$VENV_DIR"
 source "$VENV_DIR/bin/activate"
 
-# Установка зависимостей
+
 echo "Installing dependencies..."
 pip install -r "$COMMON_REQUIREMENTS"
 pip install -r "$COMMON_DEV_REQUIREMENTS"
@@ -36,13 +36,13 @@ echo "********** INTEGRATION TEST ***********"
 cd "../integration"
 PYTHONPATH="$ASTRACOMMON_SRC:$PROJECT_SRC:$ASTRAEXTENSIONS_SRC" python -m unittest discover --verbose
 
-# Деактивация виртуального окружения
+
 deactivate
 #!/usr/bin/env bash
 
-set -e  # Остановка выполнения при ошибке
+set -e
 
-# Переменные
+
 VENV_DIR=".venv"
 COMMON_REQUIREMENTS="../astracommon/requirements.txt"
 COMMON_DEV_REQUIREMENTS="../astracommon/requirements-dev.txt"
@@ -54,12 +54,12 @@ ASTRACOMMON_SRC="../../../astracommon/src"
 PROJECT_SRC="../../src"
 ASTRAEXTENSIONS_SRC="../../../astraextensions"
 
-# Создание виртуального окружения
+
 mkdir -p "$VENV_DIR"
 python3 -m venv "$VENV_DIR"
 source "$VENV_DIR/bin/activate"
 
-# Установка зависимостей
+
 echo "Installing dependencies..."
 pip install -r "$COMMON_REQUIREMENTS"
 pip install -r "$COMMON_DEV_REQUIREMENTS"
@@ -76,5 +76,4 @@ echo "********** INTEGRATION TEST ***********"
 cd "../integration"
 PYTHONPATH="$ASTRACOMMON_SRC:$PROJECT_SRC:$ASTRAEXTENSIONS_SRC" python -m unittest discover --verbose
 
-# Деактивация виртуального окружения
 deactivate
