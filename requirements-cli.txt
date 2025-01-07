@@ -1,6 +1,6 @@
-aiohttp==3.7.3
-websockets==8.1
-pyhumps==1.6.1
+aiohttp==3.7.2
+websockets==8.0
+pyhumps==1.6.0
 web3>=5.11.1, <=5.13.1
-orjson==3.4.6
-dataclasses==0.6
+orjson==3.4.5
+dataclasses==0.5
