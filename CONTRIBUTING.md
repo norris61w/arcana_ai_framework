@@ -89,6 +89,3 @@ It is crucial to close them though.
 Please make sure your changes include sufficient unit and/or integration test coverage to prove that your code works 
 properly. Also, be sure to run the existing unit tests and make sure those pass.
 
-We run builds for static analysis to verify type hints (via [Pyre][pyre]) and linting to check style (via [pylint]).
-Make sure these builds pass (you can use `./check.sh` and `./lint.sh` respectively), and include type hints the code
-you add.
