@@ -1,3 +1,8 @@
+# Pyre configuration directory
 .pyre
+
+# Compiled Python files
 *.pyc
+
+# Directory created by Python to store cached bytecode
 __pycache__
