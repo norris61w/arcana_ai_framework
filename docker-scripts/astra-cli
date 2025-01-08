@@ -1,3 +1,14 @@
-#! /bin/sh
+#!/bin/sh
 
-python /app/astragateway/src/astra_cli/main.py $1
+# Description:
+# This script runs the Astra CLI with the specified argument.
+
+# Check if an argument is provided
+if [ -z "$1" ]; then
+  echo "Usage: $0 <argument>"
+  echo "Please provide an argument for the Astra CLI."
+  exit 1
+fi
+
+# Execute the Astra CLI with the provided argument
+python /app/astragateway/src/astra_cli/main.py "$1"
