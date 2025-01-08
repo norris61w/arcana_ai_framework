@@ -28,7 +28,7 @@ commands:
 executors:
   astra-executor:
     docker:
-    # TODO: Use AWS repository or create astra account on Docker Hub
+    # TODO: Use AWS repository to create astra account on Docker Hub
     - image: circleci/python:3.8
     environment:
       PYTHONPATH: /home/circleci/ws/astracommon/src:/home/circleci/ws/astragateway/src:/home/circleci/ws/astraextensions
