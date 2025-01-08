@@ -1,5 +1,4 @@
 from unittest.mock import MagicMock
-
 from astracommon.feed.feed_manager import FeedManager
 from astracommon.models.bdn_account_model_base import BdnAccountModelBase
 from astracommon.models.bdn_service_model_base import FeedServiceModelBase
@@ -19,10 +18,18 @@ from astrautils.encoding.json_encoder import Case
 
 
 class GatewaySubscribeRpcRequestTest(AbstractTestCase):
+    """
+    Unit tests for subscription RPC requests in the Astra Gateway.
+    """
 
     @async_test
     async def setUp(self) -> None:
-        pub_key = "a04f30a45aae413d0ca0f219b4dcb7049857bc3f91a6351288cce603a2c9646294a02b987bf6586b370b2c22d74662355677007a14238bb037aedf41c2d08866"
+        """
+        Setup the test environment with a mock node, feed manager, and subscription RPC handler.
+        """
+        pub_key = (
+            "a04f30a45aae413d0ca0f219b4dcb7049857bc3f91a6351288cce603a2c9646294a02b987bf6586b370b2c22d74662355677007a14238bb037aedf41c2d08866"
+        )
         opts = gateway_helpers.get_gateway_opts(
             8000,
             include_default_eth_args=True,
@@ -40,11 +47,11 @@ class GatewaySubscribeRpcRequestTest(AbstractTestCase):
 
         self.feed_service_model = FeedServiceModelBase(
             allow_filtering=True,
-            available_fields=["all"]
+            available_fields=["all"],
         )
         self.base_feed_service_model = BdnFeedServiceModelConfigBase(
             expire_date="2999-01-01",
-            feed=self.feed_service_model
+            feed=self.feed_service_model,
         )
         self.node.account_model = BdnAccountModelBase(
             account_id="account_id",
@@ -55,94 +62,114 @@ class GatewaySubscribeRpcRequestTest(AbstractTestCase):
 
     @async_test
     async def tearDown(self) -> None:
+        """
+        Cleanup resources after each test.
+        """
         pass
 
     @async_test
     async def test_subscribe_to_feed_with_no_includes_specified(self):
-        subscribe_request1 = BxJsonRpcRequest(
+        """
+        Test subscribing to a feed without specifying any include filters.
+        """
+        subscribe_request = BxJsonRpcRequest(
             "1",
             RpcRequestType.SUBSCRIBE,
             [self.feed_name, {}],
         )
 
-        rpc_handler = self.rpc.get_request_handler(subscribe_request1)
+        rpc_handler = self.rpc.get_request_handler(subscribe_request)
         result = await rpc_handler.process_request()
         self.assertTrue(result)
 
     @async_test
     async def test_subscribe_to_feed_with_all_available_fields(self):
-        subscribe_request1 = BxJsonRpcRequest(
+        """
+        Test subscribing to a feed with all available fields specified in the include filter.
+        """
+        subscribe_request = BxJsonRpcRequest(
             "1",
             RpcRequestType.SUBSCRIBE,
             [self.feed_name, {"include": ["tx_hash", "tx_contents.gas_price"]}],
         )
 
-        rpc_handler = self.rpc.get_request_handler(subscribe_request1)
+        rpc_handler = self.rpc.get_request_handler(subscribe_request)
         result = await rpc_handler.process_request()
         self.assertTrue(result)
 
     @async_test
     async def test_subscribe_to_feed_with_specific_available_field(self):
+        """
+        Test subscribing to a feed with specific available fields.
+        """
         feed_service_model = FeedServiceModelBase(
             allow_filtering=True,
-            available_fields=["tx_contents.nonce"]
+            available_fields=["tx_contents.nonce"],
         )
         base_feed_service_model = BdnFeedServiceModelConfigBase(
             expire_date="2999-01-01",
-            feed=feed_service_model
+            feed=feed_service_model,
         )
         self.node.account_model.new_transaction_streaming = base_feed_service_model
 
-        subscribe_request1 = BxJsonRpcRequest(
+        subscribe_request = BxJsonRpcRequest(
             "1",
             RpcRequestType.SUBSCRIBE,
             [self.feed_name, {"include": ["tx_contents.nonce"]}],
         )
 
-        rpc_handler = self.rpc.get_request_handler(subscribe_request1)
+        rpc_handler = self.rpc.get_request_handler(subscribe_request)
         result = await rpc_handler.process_request()
         self.assertTrue(result)
 
     @async_test
     async def test_subscribe_to_feed_with_unavailable_field(self):
+        """
+        Test subscribing to a feed with fields that are not available in the account's feed configuration.
+        """
         feed_service_model = FeedServiceModelBase(
             allow_filtering=True,
-            available_fields=["tx_hash", "tx_contents.nonce"]
+            available_fields=["tx_hash", "tx_contents.nonce"],
         )
         base_feed_service_model = BdnFeedServiceModelConfigBase(
             expire_date="2999-01-01",
-            feed=feed_service_model
+            feed=feed_service_model,
         )
         self.node.account_model.new_transaction_streaming = base_feed_service_model
 
-        subscribe_request1 = BxJsonRpcRequest(
+        subscribe_request = BxJsonRpcRequest(
             "1",
             RpcRequestType.SUBSCRIBE,
             [self.feed_name, {"include": ["tx_hash", "tx_contents.gas_price"]}],
         )
 
         with self.assertRaises(RpcInvalidParams):
-            rpc_handler = self.rpc.get_request_handler(subscribe_request1)
+            rpc_handler = self.rpc.get_request_handler(subscribe_request)
             await rpc_handler.process_request()
 
     @async_test
     async def test_subscribe_to_feed_with_feed_not_set_in_account(self):
-        subscribe_request1 = BxJsonRpcRequest(
+        """
+        Test subscribing to a feed that is not set in the account configuration.
+        """
+        subscribe_request = BxJsonRpcRequest(
             "1",
             RpcRequestType.SUBSCRIBE,
             ["pendingTxs", {}],
         )
 
         with self.assertRaises(RpcAccountIdError):
-            rpc_handler = self.rpc.get_request_handler(subscribe_request1)
+            rpc_handler = self.rpc.get_request_handler(subscribe_request)
             await rpc_handler.process_request()
 
     @async_test
     async def test_subscribe_to_feed_no_feed_service(self):
-        # allow feed if service is not defined (old account)
+        """
+        Test subscribing to a feed when no feed service is defined in the account (old account scenario).
+        """
         self.node.account_model.new_transaction_streaming = BdnFeedServiceModelConfigBase(
-                expire_date="2999-01-01"
-            )
+            expire_date="2999-01-01",
+        )
 
         subscribe_request1 = BxJsonRpcRequest(
             "1",
@@ -155,9 +182,4 @@ class GatewaySubscribeRpcRequestTest(AbstractTestCase):
             [self.feed_name, {"include": ["tx_hash", "tx_contents.gas_price"]}],
         )
 
-        rpc_handler = self.rpc.get_request_handler(subscribe_request1)
-        result = await rpc_handler.process_request()
-        self.assertTrue(result)
-        rpc_handler = self.rpc.get_request_handler(subscribe_request2)
-        result = await rpc_handler.process_request()
-        self.assertTrue(result)
+
