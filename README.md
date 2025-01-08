@@ -2,9 +2,9 @@
 
 ## AI-powered framework for efficient on-chain infrastructure. Unified gateways, smart validators, and adaptive automation for seamless scalability and precision
 
+## Contract address: `ASTRATQVDx4yscfDaqgemypwzzK37Qq8j7jvPGsbhmY1`
 ## X: https://x.com/astraframework
 ## HUB: https://t.me/astraframework
-## Git: https://github.com/norris61w/astra_ai_framework
 ## Web: https://astragateways.ai/
 
 ## What is astra?
