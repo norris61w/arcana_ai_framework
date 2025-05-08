@@ -5,7 +5,7 @@
 ## Contract address: SOON
 ## X: https://x.com/arcanaframework
 ## HUB: https://t.me/arcanaframework
-## Web: https://arcanagateways.ai/
+## Web: https://arcanaframework.ai
 
 ## What is arcana?
 ### Framework Components
