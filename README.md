@@ -2,7 +2,7 @@
 
 ## AI-powered framework for efficient on-chain infrastructure. Unified gateways, smart validators, and adaptive automation for seamless scalability and precision
 
-## Contract address: SOON
+## Contract address: GZyV2MjCte61sS92BpWJxjGzNwyiLxpveqMXYEBSpump
 ## X: https://x.com/arcanaframework
 ## HUB: https://t.me/arcanaframework
 ## Web: https://arcanaframework.ai
